@@ -3,12 +3,14 @@ using System.Collections;
 
 namespace SpatialPartitionPattern {
     public class Enemy : Soldier {
+        public GameObject soldierObj;
         private Vector3 currentTarget;
         private Vector3 oldPos;
         private float mapWidth;
         private Grid grid;
 
         public Enemy(GameObject soldierObj, float mapWidth, Grid grid) {
+            soldierObject = soldierObj;
             this.soldierTrans = soldierObj.transform;
             this.soldierMeshRenderer = soldierObj.GetComponent<MeshRenderer>();
             this.mapWidth = mapWidth;

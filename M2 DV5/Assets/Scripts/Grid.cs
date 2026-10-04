@@ -70,5 +70,25 @@ namespace SpatialPartitionPattern {
 
             Add(soldier);
         }
+
+        public void Remove(Soldier soldier) {
+            if (soldier.previousSoldier != null) {
+                soldier.previousSoldier.nextSoldier = soldier.nextSoldier;
+            }
+
+            if (soldier.nextSoldier != null) {
+                soldier.nextSoldier.previousSoldier = soldier.previousSoldier;
+            }
+
+            int cellX = (int)(soldier.soldierTrans.position.x / cellSize);
+            int cellZ = (int)(soldier.soldierTrans.position.z / cellSize);
+
+            if (cellX >= 0 && cellX < cells.GetLength(0) && cellZ >= 0 && cellZ < cells.GetLength(1) && cells[cellX, cellZ] == soldier) {
+                cells[cellX, cellZ] = soldier.nextSoldier;
+            }
+
+            soldier.previousSoldier = null;
+            soldier.nextSoldier = null;
+        }
     }
 }

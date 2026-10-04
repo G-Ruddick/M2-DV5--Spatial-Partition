@@ -3,6 +3,7 @@ using System.Collections;
 
 namespace SpatialPartitionPattern {
     public class Soldier {
+        public GameObject soldierObject;
         public MeshRenderer soldierMeshRenderer;
         public Transform soldierTrans;
         protected float walkSpeed;

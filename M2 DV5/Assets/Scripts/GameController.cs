@@ -18,15 +18,20 @@ namespace SpatialPartitionPattern {
         public Button togglePartitionButton;
         private bool partitionToggle = true;
 
-        private List<Soldier> enemySoldiers = new List<Soldier>();
-        private List<Soldier> friendlySoldiers = new List<Soldier>();
-        private List<Soldier> closestEnemies = new List<Soldier>();
+        public List<Soldier> enemySoldiers = new List<Soldier>();
+        public List<Soldier> friendlySoldiers = new List<Soldier>();
+        public List<Soldier> closestEnemies = new List<Soldier>();
 
         private float mapWidth = 50f;
         private int cellSize = 10;
         private int numberOfSoldiers = 100;
 
         private Grid grid;
+        public static GameController instance;
+
+        private void Awake() {
+            instance = this;
+        }
 
         private void Start() {
             grid = new Grid((int)mapWidth, cellSize);
@@ -37,14 +42,19 @@ namespace SpatialPartitionPattern {
                 enemySoldiers.Add(new Enemy(newEnemy, mapWidth, grid));
                 newEnemy.transform.parent = enemyParent;
                 
-                randomPos = new Vector3(Random.Range(0f, mapWidth), 0.5f, Random.Range(0f, mapWidth));
-                GameObject newFriendly = Instantiate(friendlyObj, randomPos, Quaternion.identity) as GameObject;
-                friendlySoldiers.Add(new Friendly(newFriendly, mapWidth));
-                newFriendly.transform.parent = friendlyParent;
+                if (i % 2 == 0) {
+                    randomPos = new Vector3(Random.Range(0f, mapWidth), 0.5f, Random.Range(0f, mapWidth));
+                    GameObject newFriendly = Instantiate(friendlyObj, randomPos, Quaternion.identity) as GameObject;
+                    friendlySoldiers.Add(new Friendly(newFriendly, mapWidth));
+                    newFriendly.transform.parent = friendlyParent;
+                }
             }
         }
 
+        float cooldown = 0f;
+        bool fired = false;
         private void Update() {
+            cooldown += Time.deltaTime;
             updateTime += Time.deltaTime;
             updateTimeText.text = "Time in Update: " + updateTime.ToString("F2");
 
@@ -53,7 +63,9 @@ namespace SpatialPartitionPattern {
             }
             
             for (int i = 0; i < closestEnemies.Count; i++) {
-                closestEnemies[i].soldierMeshRenderer.material = enemyMaterial;
+                if (closestEnemies[i] != null && closestEnemies[i].soldierMeshRenderer != null) {
+                    closestEnemies[i].soldierMeshRenderer.material = enemyMaterial;
+                }
             }
 
             closestEnemies.Clear();
@@ -65,9 +77,17 @@ namespace SpatialPartitionPattern {
                     if (closestEnemy != null) {
                         closestEnemy.soldierMeshRenderer.material = closestEnemyMaterial;
                         closestEnemies.Add(closestEnemy);
-                        friendlySoldiers[i].Move(closestEnemy);
-                    }   
+
+                        if (cooldown > 3.0f) {
+                            fired = true;
+                            friendlySoldiers[i].Move(closestEnemy);
+                        }
+                    }
                 }
+            }
+            if (fired) {
+                fired = false;
+                cooldown = 0;
             }
         }
 
@@ -89,6 +109,29 @@ namespace SpatialPartitionPattern {
             }
 
             return closestEnemy;
+        }
+
+        public void RemoveEnemy(Soldier soldier) {
+            if (soldier == null) {
+                return;
+            }
+
+            grid.Remove(soldier);
+            enemySoldiers.Remove(soldier);
+            friendlySoldiers.Remove(soldier);
+
+            if (soldier.soldierObject != null) {
+                Destroy(soldier.soldierObject);
+            }
+        }
+
+        public void SpawnEnemy() {
+            for (int i = 0; i < 25; i++) {
+                Vector3 randomPos = new Vector3(Random.Range(0f, mapWidth), 0.5f, Random.Range(0f, mapWidth));
+                GameObject newEnemy = Instantiate(enemyObj, randomPos, Quaternion.identity) as GameObject;
+                enemySoldiers.Add(new Enemy(newEnemy, mapWidth, grid));
+                newEnemy.transform.parent = enemyParent;
+            }
         }
     }
 }
